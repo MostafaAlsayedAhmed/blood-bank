@@ -1,4 +1,5 @@
 import { getTranslations } from "next-intl/server";
+import { LanguageSwitcher } from "@/features/i18n/components/language-switcher";
 
 /** Public pages (/register, /privacy): no session, no dashboard chrome, no analytics. */
 export default async function PublicLayout({ children }: { children: React.ReactNode }) {
@@ -6,8 +7,9 @@ export default async function PublicLayout({ children }: { children: React.React
   return (
     <div className="min-h-dvh">
       <header className="border-b bg-card">
-        <div className="mx-auto max-w-xl px-4 py-4">
+        <div className="mx-auto flex max-w-xl items-center justify-between gap-3 px-4 py-4">
           <p className="font-semibold text-primary">{t("app.name")}</p>
+          <LanguageSwitcher />
         </div>
       </header>
       <main className="mx-auto max-w-xl px-4 py-6">{children}</main>

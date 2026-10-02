@@ -5,6 +5,7 @@ import { NAV_ITEMS } from "@/features/navigation/nav-items";
 import { SidebarNav } from "@/features/navigation/components/sidebar-nav";
 import { signOutAction } from "@/features/auth/actions";
 import { Button } from "@/components/ui/button";
+import { LanguageSwitcher } from "@/features/i18n/components/language-switcher";
 
 /**
  * Dashboard shell. It reads the session only to render the nav and user menu;
@@ -30,7 +31,8 @@ export default async function DashboardLayout({ children }: { children: React.Re
       </aside>
 
       <div className="flex min-w-0 flex-col">
-        <header className="flex items-center justify-end gap-3 border-b bg-card px-4 py-3">
+        <header className="flex flex-wrap items-center justify-end gap-3 border-b bg-card px-4 py-3">
+          <LanguageSwitcher className="me-auto" />
           {ctx ? (
             <>
               <span className="text-sm text-muted-foreground">

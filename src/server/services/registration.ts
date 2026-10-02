@@ -29,7 +29,7 @@ export async function registerPublicDonor(
   input: RegistrationInput,
   now: Date = new Date(),
 ): Promise<RegistrationOutcome> {
-  const evidence = currentNoticeEvidence();
+  const evidence = currentNoticeEvidence(pctx.locale);
 
   if (await isThrottled(pctx, now)) return "throttled";
 

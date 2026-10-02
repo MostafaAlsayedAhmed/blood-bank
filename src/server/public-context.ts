@@ -1,14 +1,16 @@
 import "server-only";
 import { createHmac } from "node:crypto";
 import { headers } from "next/headers";
+import { getLocale } from "next-intl/server";
 import { db } from "@/server/db";
 import { DomainError } from "@/domain/errors";
+import { DEFAULT_LOCALE, isLocale, type Locale } from "@/i18n/config";
 
 /**
  * Context for unauthenticated public requests (/register). There is no session,
  * so the hospital comes from server configuration, never from client input.
  */
-export type PublicContext = { hospitalId: string; ipHash: string };
+export type PublicContext = { hospitalId: string; ipHash: string; locale: Locale };
 
 let cachedHospitalId: string | undefined;
 
@@ -38,5 +40,11 @@ export async function getPublicContext(): Promise<PublicContext> {
   if (!secret) throw new DomainError("INTERNAL", "BETTER_AUTH_SECRET is not set");
   const h = await headers();
   const ip = h.get("x-forwarded-for")?.split(",")[0]?.trim() || h.get("x-real-ip") || "unknown";
-  return { hospitalId: await resolvePublicHospitalId(), ipHash: hashClientIp(ip, secret) };
+  const locale = await getLocale();
+  return {
+    hospitalId: await resolvePublicHospitalId(),
+    ipHash: hashClientIp(ip, secret),
+    // The language the form and notice were shown in; consent evidence is per language.
+    locale: isLocale(locale) ? locale : DEFAULT_LOCALE,
+  };
 }

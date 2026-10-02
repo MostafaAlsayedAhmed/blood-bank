@@ -14,6 +14,22 @@ export default defineConfig({
   use: {
     baseURL: process.env.E2E_BASE_URL ?? "http://localhost:3000",
     trace: "retain-on-failure",
+    // Specs use English labels; Arabic (the default) is covered by tests/e2e/i18n.spec.ts.
+    storageState: {
+      cookies: [
+        {
+          name: "NEXT_LOCALE",
+          value: "en",
+          domain: new URL(process.env.E2E_BASE_URL ?? "http://localhost:3000").hostname,
+          path: "/",
+          expires: -1,
+          httpOnly: true,
+          secure: false,
+          sameSite: "Lax",
+        },
+      ],
+      origins: [],
+    },
   },
   webServer: process.env.E2E_BASE_URL
     ? undefined

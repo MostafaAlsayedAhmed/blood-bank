@@ -1,7 +1,8 @@
 {
   "app": {
     "name": "Queseir Blood Bank",
-    "tagline": "Donor management"
+    "tagline": "Donor management",
+    "description": "Internal donor management system"
   },
   "common": {
     "retry": "Try again",
@@ -18,7 +19,11 @@
     "next": "Next",
     "pageOf": "Page {page} of {pages}",
     "saved": "Saved.",
-    "by": "by {name}"
+    "by": "by {name}",
+    "version": "Version {version}"
+  },
+  "language": {
+    "label": "Language"
   },
   "login": {
     "title": "Staff sign in",

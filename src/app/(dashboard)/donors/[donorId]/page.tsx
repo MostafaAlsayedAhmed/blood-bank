@@ -48,7 +48,8 @@ export default async function DonorProfilePage({ params }: { params: Promise<{ d
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="flex flex-col gap-2">
           <Link href="/donors" className="text-sm text-muted-foreground hover:underline">
-            ← {t("title")}
+            {/* Points back toward the start edge in both directions. */}
+            <span aria-hidden="true" className="inline-block rtl:rotate-180">←</span> {t("title")}
           </Link>
           <h1 className="text-2xl font-semibold">{donor.fullName}</h1>
           <DonorStatusBadges {...donor} />

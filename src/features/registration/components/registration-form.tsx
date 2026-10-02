@@ -60,7 +60,7 @@ export function RegistrationForm({ areas }: { areas: readonly AreaOption[] }) {
       </fieldset>
 
       {/* Honeypot: hidden from people and assistive tech; bots tend to fill it. */}
-      <div aria-hidden="true" className="absolute -left-[10000px] h-px w-px overflow-hidden">
+      <div aria-hidden="true" className="pointer-events-none absolute h-px w-px overflow-hidden opacity-0 [clip:rect(0,0,0,0)]">
         <label htmlFor={HONEYPOT_FIELD}>{t("honeypot")}</label>
         <input id={HONEYPOT_FIELD} name={HONEYPOT_FIELD} type="text" tabIndex={-1} autoComplete="off" />
       </div>

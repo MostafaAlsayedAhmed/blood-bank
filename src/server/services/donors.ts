@@ -15,6 +15,7 @@ import { assertPermission } from "@/domain/auth/permissions";
 import { DomainError } from "@/domain/errors";
 import { fromIsoDate, monthToFirstDay, toIsoDate } from "@/domain/dates";
 import { formatPhone } from "@/domain/phone";
+import type { Locale } from "@/i18n/config";
 import type { ConsentPurpose } from "@/domain/donor/enums";
 import {
   assertCanDeactivate,
@@ -52,9 +53,14 @@ function rethrowDuplicatePhone(error: unknown): never {
 
 // ─── Create and edit (W2) ────────────────────────────────────────────────────
 
-export async function createDonor(ctx: AuthContext, input: StaffCreateDonorInput): Promise<{ donorId: string }> {
+/** `locale` is the language of the notice staff presented to the donor. */
+export async function createDonor(
+  ctx: AuthContext,
+  input: StaffCreateDonorInput,
+  locale: Locale,
+): Promise<{ donorId: string }> {
   assertPermission(ctx, "donor:create");
-  const evidence = currentNoticeEvidence();
+  const evidence = currentNoticeEvidence(locale);
 
   const donorId = await db
     .$transaction(async (tx) => {
@@ -397,9 +403,9 @@ export async function withdrawConsent(ctx: AuthContext, input: ConsentPurposeInp
 }
 
 /** Records a consent the donor has given again (staff entry, current notice version). */
-export async function grantConsent(ctx: AuthContext, input: ConsentPurposeInput): Promise<void> {
+export async function grantConsent(ctx: AuthContext, input: ConsentPurposeInput, locale: Locale): Promise<void> {
   assertPermission(ctx, "donor:update");
-  const evidence = currentNoticeEvidence();
+  const evidence = currentNoticeEvidence(locale);
   await db
     .$transaction(async (tx) => {
       const donor = await loadDonorState(tx, ctx, input.donorId);

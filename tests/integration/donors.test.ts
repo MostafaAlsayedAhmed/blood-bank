@@ -76,7 +76,7 @@ async function errorCode(promise: Promise<unknown>): Promise<string> {
 }
 
 async function createStaffDonor(overrides: Record<string, string> = {}): Promise<string> {
-  return (await donors.createDonor(ctx.STAFF, staffForm(overrides))).donorId;
+  return (await donors.createDonor(ctx.STAFF, staffForm(overrides), "en")).donorId;
 }
 
 beforeAll(async () => {
@@ -102,7 +102,7 @@ afterAll(async () => {
 describe("public registration (W1)", () => {
   it("creates a PENDING/UNASSESSED donor, two consents and audit rows together", async () => {
     const input = publicForm();
-    expect(await registerPublicDonor({ hospitalId, ipHash: randomUUID() }, input)).toBe("accepted");
+    expect(await registerPublicDonor({ hospitalId, ipHash: randomUUID(), locale: "en" as const }, input)).toBe("accepted");
 
     const donor = await db.donor.findUniqueOrThrow({
       where: { hospitalId_phoneE164: { hospitalId, phoneE164: input.phone } },
@@ -128,17 +128,17 @@ describe("public registration (W1)", () => {
 
   it("stores only the registry consent when contact consent is not ticked", async () => {
     const input = publicForm({ consentContact: "" });
-    await registerPublicDonor({ hospitalId, ipHash: randomUUID() }, input);
+    await registerPublicDonor({ hospitalId, ipHash: randomUUID(), locale: "en" as const }, input);
     const consents = await db.consentRecord.findMany({ where: { donor: { phoneE164: input.phone } } });
     expect(consents.map((c) => c.purpose)).toEqual(["REGISTRY"]);
   });
 
   it("answers a duplicate phone identically, flags the existing donor and stores nothing new", async () => {
     const first = publicForm();
-    await registerPublicDonor({ hospitalId, ipHash: randomUUID() }, first);
+    await registerPublicDonor({ hospitalId, ipHash: randomUUID(), locale: "en" as const }, first);
     const again = { ...publicForm({ fullName: "Someone Else" }), phone: first.phone };
 
-    expect(await registerPublicDonor({ hospitalId, ipHash: randomUUID() }, again)).toBe("accepted");
+    expect(await registerPublicDonor({ hospitalId, ipHash: randomUUID(), locale: "en" as const }, again)).toBe("accepted");
 
     const rows = await db.donor.findMany({ where: { hospitalId, phoneE164: first.phone }, include: { consents: true } });
     expect(rows).toHaveLength(1);
@@ -149,7 +149,7 @@ describe("public registration (W1)", () => {
   });
 
   it("throttles repeated submissions from one IP hash", async () => {
-    const pctx = { hospitalId, ipHash: randomUUID() };
+    const pctx = { hospitalId, ipHash: randomUUID(), locale: "en" as const };
     for (let i = 0; i < REGISTRATION_THROTTLE.maxAttempts; i++) {
       expect(await registerPublicDonor(pctx, publicForm())).toBe("accepted");
     }
@@ -161,7 +161,7 @@ describe("public registration (W1)", () => {
 
 describe("staff entry and verification (W2, W3)", () => {
   it("creates a donor with staff-captured consents, and 'verify now' is a separate audited step", async () => {
-    const { donorId } = await donors.createDonor(ctx.STAFF, staffForm({ verifyNow: "on" }));
+    const { donorId } = await donors.createDonor(ctx.STAFF, staffForm({ verifyNow: "on" }), "ar");
     const donor = await db.donor.findUniqueOrThrow({
       where: { id: donorId },
       include: { consents: true, verifications: true },
@@ -184,7 +184,7 @@ describe("staff entry and verification (W2, W3)", () => {
   });
 
   it("forbids VIEWER writes", async () => {
-    expect(await errorCode(donors.createDonor(ctx.VIEWER, staffForm()))).toBe("FORBIDDEN");
+    expect(await errorCode(donors.createDonor(ctx.VIEWER, staffForm(), "en"))).toBe("FORBIDDEN");
   });
 
   it("rejects with a reason; only ADMIN can reopen", async () => {
@@ -236,8 +236,8 @@ describe("staff entry and verification (W2, W3)", () => {
 
   it("clears the review flag set by a resubmission", async () => {
     const input = publicForm();
-    await registerPublicDonor({ hospitalId, ipHash: randomUUID() }, input);
-    await registerPublicDonor({ hospitalId, ipHash: randomUUID() }, input);
+    await registerPublicDonor({ hospitalId, ipHash: randomUUID(), locale: "en" as const }, input);
+    await registerPublicDonor({ hospitalId, ipHash: randomUUID(), locale: "en" as const }, input);
     const donor = await db.donor.findUniqueOrThrow({ where: { hospitalId_phoneE164: { hospitalId, phoneE164: input.phone } } });
     await donors.clearReview(ctx.STAFF, { donorId: donor.id });
     expect((await db.donor.findUniqueOrThrow({ where: { id: donor.id } })).needsReview).toBe(false);
@@ -285,7 +285,7 @@ describe("consent withdrawal (W9) and activity", () => {
       "INVALID_TRANSITION",
     );
 
-    await donors.grantConsent(ctx.STAFF, { donorId, purpose: "CONTACT" });
+    await donors.grantConsent(ctx.STAFF, { donorId, purpose: "CONTACT" }, "en");
     await donors.reactivateDonor(ctx.STAFF, { donorId });
     donor = await db.donor.findUniqueOrThrow({ where: { id: donorId } });
     expect(donor).toMatchObject({ activityStatus: "ACTIVE", inactiveReason: null });
@@ -297,7 +297,7 @@ describe("consent withdrawal (W9) and activity", () => {
 
   it("refuses a second active consent for the same purpose", async () => {
     const donorId = await createStaffDonor();
-    expect(await errorCode(donors.grantConsent(ctx.STAFF, { donorId, purpose: "REGISTRY" }))).toBe(
+    expect(await errorCode(donors.grantConsent(ctx.STAFF, { donorId, purpose: "REGISTRY" }, "en"))).toBe(
       "INVALID_TRANSITION",
     );
   });

@@ -1,14 +1,17 @@
 import type { Metadata } from "next";
 import { NextIntlClientProvider } from "next-intl";
-import { getLocale } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import { RTL_LOCALES } from "@/i18n/config";
 import "./globals.css";
 
-export const metadata: Metadata = {
-  title: "Queseir Blood Bank",
-  description: "Internal donor management system",
-  robots: { index: false, follow: false },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("app");
+  return {
+    title: { default: t("name"), template: `%s · ${t("name")}` },
+    description: t("description"),
+    robots: { index: false, follow: false },
+  };
+}
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const locale = await getLocale();

@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { getLocale } from "next-intl/server";
 import { runAction } from "@/server/actions/run-action";
 import * as donors from "@/server/services/donors";
 import { searchDonors, type DonorRow } from "@/server/queries/donors";
@@ -23,6 +24,7 @@ import {
 import { formDataToObject } from "@/lib/form-data";
 import { hospitalToday } from "@/lib/today";
 import type { ActionResult } from "@/lib/action-result";
+import { DEFAULT_LOCALE, isLocale, type Locale } from "@/i18n/config";
 
 /**
  * Thin Server Actions (spec §8): runAction → requirePermission → Zod → service.
@@ -30,6 +32,12 @@ import type { ActionResult } from "@/lib/action-result";
  */
 
 export type FormState = (ActionResult<unknown> & { values?: Record<string, string> }) | null;
+
+/** Language of the current UI, i.e. of the notice staff read to the donor. */
+async function uiLocale(): Promise<Locale> {
+  const locale = await getLocale();
+  return isLocale(locale) ? locale : DEFAULT_LOCALE;
+}
 
 function refreshDonor(donorId: string): void {
   revalidatePath("/donors", "layout");
@@ -40,8 +48,13 @@ function refreshDonor(donorId: string): void {
 
 export async function createDonorAction(_prev: FormState, formData: FormData): Promise<FormState> {
   const raw = formDataToObject(formData);
+  const locale = await uiLocale();
   const result = await runAction(
-    { permission: "donor:create", schema: staffCreateDonorSchema(hospitalToday()), handler: donors.createDonor },
+    {
+      permission: "donor:create",
+      schema: staffCreateDonorSchema(hospitalToday()),
+      handler: (ctx, input) => donors.createDonor(ctx, input, locale),
+    },
     raw,
   );
   if (!result.ok) return { ...result, values: raw };
@@ -158,8 +171,16 @@ export async function withdrawConsentAction(_prev: FormState, formData: FormData
 }
 
 export async function grantConsentAction(_prev: FormState, formData: FormData): Promise<FormState> {
+  const locale = await uiLocale();
   return donorFormAction(formData, (raw) =>
-    runAction({ permission: "donor:update", schema: consentPurposeSchema, handler: donors.grantConsent }, raw),
+    runAction(
+      {
+        permission: "donor:update",
+        schema: consentPurposeSchema,
+        handler: (ctx, input) => donors.grantConsent(ctx, input, locale),
+      },
+      raw,
+    ),
   );
 }
 

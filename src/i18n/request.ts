@@ -1,13 +1,14 @@
+import { cookies } from "next/headers";
 import { getRequestConfig } from "next-intl/server";
-import { APP_TIME_ZONE, DEFAULT_LOCALE } from "@/i18n/config";
+import { APP_TIME_ZONE, DEFAULT_LOCALE, LOCALE_COOKIE, isLocale } from "@/i18n/config";
 
 /**
- * Phase 1: English only, without locale routing (Assumption A2).
- * All UI strings already live in messages/<locale>.json, so adding Arabic
- * (Open Question O6) is a content + routing change, not a UI rewrite.
+ * Locale comes from the language-switcher cookie (no locale routing, so URLs stay
+ * the same for staff bookmarks and the QR code). Falls back to Arabic.
  */
 export default getRequestConfig(async () => {
-  const locale = DEFAULT_LOCALE;
+  const fromCookie = (await cookies()).get(LOCALE_COOKIE)?.value;
+  const locale = isLocale(fromCookie) ? fromCookie : DEFAULT_LOCALE;
   return {
     locale,
     timeZone: APP_TIME_ZONE,

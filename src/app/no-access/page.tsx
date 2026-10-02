@@ -1,6 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import { signOutAction } from "@/features/auth/actions";
 import { Button } from "@/components/ui/button";
+import { LanguageSwitcher } from "@/features/i18n/components/language-switcher";
 
 /**
  * Shown when a signed-in user has no single active hospital membership.
@@ -11,6 +12,7 @@ export default async function NoAccessPage() {
   return (
     <main className="flex min-h-dvh items-center justify-center px-4">
       <div className="flex max-w-md flex-col items-center gap-4 text-center">
+        <LanguageSwitcher />
         <h1 className="text-xl font-semibold">{t("title")}</h1>
         <p className="text-muted-foreground">{t("body")}</p>
         <form action={signOutAction}>
