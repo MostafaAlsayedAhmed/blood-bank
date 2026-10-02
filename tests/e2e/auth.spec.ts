@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { submitLogin } from "./support/sign-in";
 
 const password = process.env.SEED_STAFF_PASSWORD ?? "";
 
@@ -12,18 +13,13 @@ test.describe("staff authentication", () => {
   });
 
   test("wrong credentials show a generic error", async ({ page }) => {
-    await page.goto("/login");
-    await page.getByLabel("Email").fill("staff@bloodbank.test");
-    await page.getByLabel("Password").fill("not-the-password-123");
-    await page.getByRole("button", { name: "Sign in" }).click();
-    await expect(page.getByRole("alert")).toHaveText("Email or password is incorrect.");
+    await submitLogin(page, "staff@bloodbank.test", "not-the-password-123");
+    // Scoped to <main>: Next.js also renders a role=alert route announcer.
+    await expect(page.getByRole("main").getByRole("alert")).toHaveText("Email or password is incorrect.");
   });
 
   test("staff can sign in and sign out", async ({ page }) => {
-    await page.goto("/login");
-    await page.getByLabel("Email").fill("staff@bloodbank.test");
-    await page.getByLabel("Password").fill(password);
-    await page.getByRole("button", { name: "Sign in" }).click();
+    await submitLogin(page, "staff@bloodbank.test", password);
 
     await expect(page).toHaveURL(/\/dashboard$/);
     await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible();
