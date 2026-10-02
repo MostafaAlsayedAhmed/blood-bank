@@ -13,6 +13,7 @@ jobs:
       BETTER_AUTH_SECRET: ci-only-secret-not-used-anywhere-else-000
       BETTER_AUTH_URL: http://localhost:3000
       SEED_STAFF_PASSWORD: ci-only-password-123
+      PUBLIC_HOSPITAL_CODE: QSR
     services:
       db:
         image: postgres:18

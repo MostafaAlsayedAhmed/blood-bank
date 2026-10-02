@@ -44,6 +44,7 @@ This code was written in an environment without package-registry access, so thes
 | `SHADOW_DATABASE_URL` | Empty database used only by `db:check-drift` |
 | `BETTER_AUTH_SECRET` | Session signing secret; unique per environment |
 | `BETTER_AUTH_URL` | Public base URL; also the only trusted origin |
+| `PUBLIC_HOSPITAL_CODE` | Hospital code that public `/register` submissions are filed under (seed: `QSR`) |
 | `SEED_STAFF_PASSWORD` | Dev seed only (≥ 12 chars); the seed refuses `NODE_ENV=production` |
 
 ## Database

@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import * as z from "zod";
 import { DomainError } from "@/domain/errors";
-import { createActionRunner } from "@/server/actions/action-runner";
+import { createActionRunner, createPublicActionRunner } from "@/server/actions/action-runner";
 import type { AuthContext } from "@/server/auth/session-verifier";
 
 const ctx = { userId: "u1", name: "Dev", hospitalId: "h1", hospitalName: "H", role: "STAFF" } as AuthContext;
@@ -80,6 +80,41 @@ describe("runAction", () => {
       { units: 1 },
     );
     expect(result).toEqual({ ok: false, error: "INTERNAL" });
+    expect(logger.error).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("runPublicAction", () => {
+  const publicCtx = { hospitalId: "h1", ipHash: "abc" };
+
+  it("validates before resolving the public context or running the handler", async () => {
+    const getContext = vi.fn(async () => publicCtx);
+    const handler = vi.fn();
+    const runPublicAction = createPublicActionRunner({ getContext, logger: { error: vi.fn() } });
+    const result = await runPublicAction({ schema, handler }, { units: 0 });
+    expect(result).toMatchObject({ ok: false, error: "VALIDATION" });
+    expect(getContext).not.toHaveBeenCalled();
+    expect(handler).not.toHaveBeenCalled();
+  });
+
+  it("passes the server-derived context to the handler", async () => {
+    const runPublicAction = createPublicActionRunner({ getContext: async () => publicCtx, logger: { error: vi.fn() } });
+    const result = await runPublicAction(
+      { schema, handler: async (c, input) => `${c.hospitalId}:${input.units}` },
+      { units: 3 },
+    );
+    expect(result).toEqual({ ok: true, data: "h1:3" });
+  });
+
+  it("hides INTERNAL domain errors and unexpected errors behind INTERNAL, and logs them", async () => {
+    const logger = { error: vi.fn() };
+    const runPublicAction = createPublicActionRunner({
+      getContext: async () => {
+        throw new DomainError("INTERNAL", "PUBLIC_HOSPITAL_CODE is not set");
+      },
+      logger,
+    });
+    expect(await runPublicAction({ schema, handler: vi.fn() }, { units: 1 })).toEqual({ ok: false, error: "INTERNAL" });
     expect(logger.error).toHaveBeenCalledTimes(1);
   });
 });

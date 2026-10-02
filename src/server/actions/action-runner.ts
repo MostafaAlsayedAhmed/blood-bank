@@ -17,6 +17,36 @@ export type ActionSpec<S extends z.ZodType, T> = {
   handler: (ctx: AuthContext, input: z.infer<S>) => Promise<T>;
 };
 
+export type PublicActionSpec<C, S extends z.ZodType, T> = {
+  schema: S;
+  handler: (ctx: C, input: z.infer<S>) => Promise<T>;
+};
+
+/**
+ * Runner for the few unauthenticated actions (public registration). Same Zod and
+ * error handling as runAction; the context (hospital, IP hash) comes from server
+ * configuration, never from client input.
+ */
+export function createPublicActionRunner<C>(deps: { getContext: () => Promise<C>; logger: Logger }) {
+  return async function runPublicAction<S extends z.ZodType, T>(
+    spec: PublicActionSpec<C, S, T>,
+    rawInput: unknown,
+  ): Promise<ActionResult<T>> {
+    try {
+      const parsed = spec.schema.safeParse(rawInput);
+      if (!parsed.success) {
+        const { fieldErrors } = z.flattenError(parsed.error);
+        return { ok: false, error: "VALIDATION", fieldErrors: fieldErrors as Record<string, string[]> };
+      }
+      return { ok: true, data: await spec.handler(await deps.getContext(), parsed.data) };
+    } catch (error) {
+      if (isDomainError(error) && error.code !== "INTERNAL") return { ok: false, error: error.code };
+      deps.logger.error("public action failed", { error });
+      return { ok: false, error: "INTERNAL" };
+    }
+  };
+}
+
 /**
  * Framework-free core of every Server Action (spec §8):
  *   requirePermission → Zod safeParse → handler → typed ActionResult.
