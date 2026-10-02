@@ -12,7 +12,7 @@ export type PublicContext = { hospitalId: string; ipHash: string };
 
 let cachedHospitalId: string | undefined;
 
-async function resolvePublicHospitalId(): Promise<string> {
+export async function resolvePublicHospitalId(): Promise<string> {
   if (cachedHospitalId) return cachedHospitalId;
   const code = process.env.PUBLIC_HOSPITAL_CODE;
   if (!code) throw new DomainError("INTERNAL", "PUBLIC_HOSPITAL_CODE is not set");

@@ -265,8 +265,8 @@ describe("eligibility (W4)", () => {
 
   it("refuses transitions outside the state machine, and permanent corrections by STAFF", async () => {
     const donorId = await createStaffDonor();
-    await donors.recordEligibility(ctx.STAFF, { donorId, status: "PERMANENTLY_INELIGIBLE", note: "Recorded by staff" });
-    expect(await errorCode(donors.recordEligibility(ctx.STAFF, { donorId, status: "ELIGIBLE" }))).toBe("FORBIDDEN");
+    await donors.recordEligibility(ctx.STAFF, { donorId, status: "PERMANENTLY_INELIGIBLE", until: undefined, note: "Recorded by staff" });
+    expect(await errorCode(donors.recordEligibility(ctx.STAFF, { donorId, status: "ELIGIBLE", until: undefined }))).toBe("FORBIDDEN");
     expect(await errorCode(donors.correctEligibility(ctx.STAFF, { donorId, note: "x" }))).toBe("FORBIDDEN");
     await donors.correctEligibility(ctx.ADMIN, { donorId, note: "Entered on the wrong donor" });
     expect((await db.donor.findUniqueOrThrow({ where: { id: donorId } })).eligibilityStatus).toBe("UNASSESSED");

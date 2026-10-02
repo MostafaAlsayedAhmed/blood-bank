@@ -24,3 +24,6 @@ tests/e2e/.auth/
 # misc
 .DS_Store
 *.log
+
+# Playwright MCP session artifacts
+.playwright-mcp/
