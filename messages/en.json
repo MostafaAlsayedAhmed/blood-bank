@@ -1,0 +1,57 @@
+{
+  "app": {
+    "name": "Queseir Blood Bank",
+    "tagline": "Donor management"
+  },
+  "common": {
+    "retry": "Try again"
+  },
+  "login": {
+    "title": "Staff sign in",
+    "description": "For authorized blood-bank staff only.",
+    "email": "Email",
+    "password": "Password",
+    "submit": "Sign in",
+    "submitting": "Signing in…",
+    "invalid": "Email or password is incorrect.",
+    "rateLimited": "Too many attempts. Wait a moment and try again.",
+    "unexpected": "Sign-in failed. Try again, or contact the administrator."
+  },
+  "nav": {
+    "label": "Main navigation",
+    "dashboard": "Dashboard",
+    "donors": "Donors",
+    "requests": "Blood requests",
+    "donations": "Donations",
+    "communications": "Communications",
+    "settings": "Settings",
+    "comingSoon": "Coming soon",
+    "signOut": "Sign out"
+  },
+  "roles": {
+    "ADMIN": "Administrator",
+    "STAFF": "Staff",
+    "VIEWER": "Viewer"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Signed in as {name} · {role}",
+    "emptyTitle": "No operational data yet",
+    "emptyBody": "Donor, request and donation figures appear here once those workflows are built. The dashboard shows live data only."
+  },
+  "noAccess": {
+    "title": "No access",
+    "body": "Your account is not linked to an active blood-bank membership. Contact the administrator.",
+    "signOut": "Sign out"
+  },
+  "errors": {
+    "UNAUTHENTICATED": "Your session has ended. Sign in again.",
+    "FORBIDDEN": "You do not have permission to do this.",
+    "NOT_FOUND": "The record was not found.",
+    "VALIDATION": "Some fields need attention.",
+    "CONFLICT": "This record was changed by someone else. Reload and try again.",
+    "INVALID_TRANSITION": "This action is not allowed in the record's current state.",
+    "RULES_NOT_CONFIGURED": "Medical rules have not been approved by the blood bank yet.",
+    "INTERNAL": "Something went wrong. Try again."
+  }
+}
