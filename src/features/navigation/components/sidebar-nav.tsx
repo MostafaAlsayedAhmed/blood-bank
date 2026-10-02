@@ -10,12 +10,16 @@ import { cn } from "@/lib/utils";
 export function SidebarNav({ items }: { items: readonly NavItem[] }) {
   const t = useTranslations("nav");
   const pathname = usePathname();
+  // Highlight only the most specific match, so /donors/pending does not also light up /donors.
+  const activeHref = items
+    .filter((i) => pathname === i.href || pathname.startsWith(`${i.href}/`))
+    .reduce<string | null>((best, i) => (!best || i.href.length > best.length ? i.href : best), null);
 
   return (
     <nav aria-label={t("label")}>
       <ul className="flex gap-1 overflow-x-auto md:flex-col">
         {items.map((item) => {
-          const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
+          const active = item.href === activeHref;
           if (!item.available) {
             return (
               <li key={item.key}>

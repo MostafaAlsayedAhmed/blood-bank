@@ -235,6 +235,7 @@
     "staffConsentRegistry": "The donor consented to the registry (data storage and processing).",
     "staffConsentContact": "The donor consented to be contacted about donation needs.",
     "duplicatePhone": "A donor with this mobile number is already registered.",
+    "editConflict": "Another donor already has this mobile number, or the record was changed by someone else. Reload and check.",
     "profile": {
       "overview": "Overview",
       "dateOfBirth": "Date of birth",
