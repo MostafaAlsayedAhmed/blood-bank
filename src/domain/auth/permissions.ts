@@ -1,3 +1,5 @@
+import { DomainError } from "@/domain/errors";
+
 /**
  * Code-defined permission map (spec §7, decision D8).
  * Every server entry point checks one of these keys via requirePermission().
@@ -66,6 +68,11 @@ const ROLE_PERMISSIONS: Readonly<Record<StaffRole, ReadonlySet<Permission>>> = {
 
 export function roleHasPermission(role: StaffRole, permission: Permission): boolean {
   return ROLE_PERMISSIONS[role].has(permission);
+}
+
+/** Services re-assert the permission on the context they were given (spec §8). */
+export function assertPermission(ctx: { role: StaffRole }, permission: Permission): void {
+  if (!roleHasPermission(ctx.role, permission)) throw new DomainError("FORBIDDEN", `missing ${permission}`);
 }
 
 export function permissionsForRole(role: StaffRole): readonly Permission[] {

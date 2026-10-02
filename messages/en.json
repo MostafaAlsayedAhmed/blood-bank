@@ -4,7 +4,21 @@
     "tagline": "Donor management"
   },
   "common": {
-    "retry": "Try again"
+    "retry": "Try again",
+    "save": "Save",
+    "saving": "Saving…",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "back": "Back",
+    "edit": "Edit",
+    "optional": "optional",
+    "none": "—",
+    "unknown": "Unknown",
+    "previous": "Previous",
+    "next": "Next",
+    "pageOf": "Page {page} of {pages}",
+    "saved": "Saved.",
+    "by": "by {name}"
   },
   "login": {
     "title": "Staff sign in",
@@ -21,6 +35,7 @@
     "label": "Main navigation",
     "dashboard": "Dashboard",
     "donors": "Donors",
+    "pendingReview": "Pending review",
     "requests": "Blood requests",
     "donations": "Donations",
     "communications": "Communications",
@@ -53,5 +68,257 @@
     "INVALID_TRANSITION": "This action is not allowed in the record's current state.",
     "RULES_NOT_CONFIGURED": "Medical rules have not been approved by the blood bank yet.",
     "INTERNAL": "Something went wrong. Try again."
+  },
+  "fieldErrors": {
+    "required": "This field is required.",
+    "invalid": "Enter a valid value.",
+    "tooLong": "This is too long.",
+    "invalidPhone": "Enter a valid Egyptian mobile number, for example 010 0000 0000.",
+    "invalidDate": "Enter a valid date.",
+    "underAge": "You must be 18 or older to register.",
+    "dateInFuture": "This date cannot be in the future.",
+    "dateNotInFuture": "Choose a date after today.",
+    "consentRequired": "This consent is needed to register.",
+    "searchTooShort": "Type at least 2 characters."
+  },
+  "enums": {
+    "bloodGroupUnknown": "Don't know",
+    "bloodGroupBasis": {
+      "VERIFIED": "verified",
+      "SELF_REPORTED": "self-reported"
+    },
+    "verificationStatus": {
+      "PENDING": "Pending",
+      "VERIFIED": "Verified",
+      "REJECTED": "Rejected"
+    },
+    "eligibilityStatus": {
+      "UNASSESSED": "Unassessed",
+      "ELIGIBLE": "Eligible",
+      "TEMPORARILY_INELIGIBLE": "Temporarily ineligible",
+      "PERMANENTLY_INELIGIBLE": "Permanently ineligible"
+    },
+    "activityStatus": {
+      "ACTIVE": "Active",
+      "INACTIVE": "Inactive"
+    },
+    "inactiveReason": {
+      "DONOR_OPT_OUT": "Donor opted out",
+      "UNREACHABLE": "Unreachable",
+      "CONSENT_WITHDRAWN": "Consent withdrawn",
+      "DUPLICATE": "Duplicate record"
+    },
+    "availability": {
+      "AVAILABLE": "Available",
+      "UNAVAILABLE": "Unavailable",
+      "UNKNOWN": "Availability unknown"
+    },
+    "donatedBefore": {
+      "YES": "Yes",
+      "NO": "No",
+      "UNSURE": "Not sure"
+    },
+    "contactMethod": {
+      "PHONE": "Phone call",
+      "WHATSAPP": "WhatsApp"
+    },
+    "source": {
+      "PUBLIC_FORM": "Public form",
+      "STAFF_ENTRY": "Staff entry"
+    },
+    "consentPurpose": {
+      "REGISTRY": "Registry (store and process data)",
+      "CONTACT": "Contact about donation needs"
+    },
+    "consentChannel": {
+      "PUBLIC_FORM": "Public form",
+      "STAFF_ENTRY": "Staff entry"
+    },
+    "rejectionReason": {
+      "DUPLICATE": "Duplicate",
+      "UNREACHABLE": "Unreachable",
+      "INVALID": "Invalid details",
+      "NOT_MEETING_CRITERIA": "Does not meet registration criteria",
+      "OTHER": "Other"
+    },
+    "verificationDecision": {
+      "VERIFIED": "Verified",
+      "REJECTED": "Rejected",
+      "REVOKED": "Verification revoked",
+      "REOPENED": "Reopened"
+    }
+  },
+  "privacyNotice": {
+    "title": "Privacy notice",
+    "draftBanner": "DRAFT — this notice has not been approved by the hospital's legal team or data protection officer. Do not submit real personal data.",
+    "intro": "Queseir Hospital Blood Bank keeps a register of people who are willing to donate blood, so that staff can contact them when blood is needed.",
+    "controllerHeading": "Who is responsible",
+    "controllerBody": "The data controller and the data protection officer's contact details will be published here once confirmed.",
+    "dataHeading": "What we collect",
+    "dataBody": "Your name, mobile number, date of birth, city and area, preferred contact method, the blood group you tell us (if you know it), and whether and roughly when you donated before. Blood-bank staff may later record verification, eligibility and donation information.",
+    "purposeHeading": "Why we use it",
+    "purposeBody": "To keep the donor register and, if you agree, to contact you by phone or WhatsApp when a matching donation is needed. We do not send automatic messages and do not share your data for other purposes.",
+    "sensitiveHeading": "Health information",
+    "sensitiveBody": "Your blood group and donation history are health information. We only process them with your explicit consent.",
+    "retentionHeading": "How long we keep it",
+    "retentionBody": "Retention periods are being confirmed and will be published here.",
+    "rightsHeading": "Your rights",
+    "rightsBody": "You can ask to see, correct or delete your data, and you can withdraw either consent at any time by contacting the blood bank. Withdrawing consent removes you from donor recall.",
+    "consentRegistry": "I agree that Queseir Hospital Blood Bank may store and process my data, including my blood group (health information), to keep the donor register.",
+    "consentContact": "I agree to be contacted by phone or WhatsApp about blood donation needs."
+  },
+  "register": {
+    "title": "Register as a blood donor",
+    "intro": "Fill in this short form. Blood-bank staff will review it and contact you. Registering does not mean you can donate yet; staff confirm that at your visit.",
+    "fullName": "Full name",
+    "phone": "Mobile number",
+    "phoneHint": "Egyptian mobile number, for example 010 0000 0000.",
+    "dateOfBirth": "Date of birth",
+    "bloodGroup": "Blood group",
+    "bloodGroupHint": "If you are not sure, choose \"Don't know\".",
+    "city": "City",
+    "area": "Area",
+    "areaOther": "Other / not listed",
+    "donatedBefore": "Have you donated blood before?",
+    "lastDonationMonth": "Approximate month of your last donation",
+    "preferredContact": "How should we contact you?",
+    "consentHeading": "Your consent",
+    "consentIntro": "Please read the privacy notice. Each consent is separate and optional to tick, but we can only register you if you agree to the first one.",
+    "privacyLink": "Read the privacy notice",
+    "honeypot": "Leave this field empty",
+    "submit": "Register",
+    "submitting": "Sending…",
+    "throttled": "Too many registrations from this connection. Please try again later.",
+    "unavailable": "Registration is not available right now. Please try again later.",
+    "thanksTitle": "Thank you",
+    "thanksBody": "We have received your registration. Blood-bank staff will contact you. If you need to change your details, please contact the blood bank.",
+    "thanksAgain": "Register another person"
+  },
+  "donors": {
+    "title": "Donors",
+    "add": "Add donor",
+    "pendingTitle": "Pending review",
+    "pendingIntro": "New registrations and donors flagged for review. Confirm identity and contact, then verify or reject.",
+    "pendingEmpty": "Nothing waiting for review.",
+    "empty": "No donors match these filters.",
+    "emptyRegistry": "No donors yet. Registrations from the public form appear in Pending review.",
+    "count": "{count, plural, =0 {No donors} one {# donor} other {# donors}}",
+    "searchLabel": "Search by name or mobile number",
+    "searchPlaceholder": "Name or mobile number",
+    "searchSubmit": "Search",
+    "searchClear": "Clear search",
+    "searchResults": "Search results",
+    "searchHint": "Search is not saved in the address bar, to keep personal data out of links and logs.",
+    "filters": "Filters",
+    "applyFilters": "Apply filters",
+    "resetFilters": "Reset",
+    "any": "Any",
+    "needsReviewFilter": "Needs review",
+    "reassessmentDueFilter": "Reassessment due",
+    "columns": {
+      "name": "Name",
+      "phone": "Mobile",
+      "bloodGroup": "Blood group",
+      "status": "Status",
+      "area": "Area",
+      "registered": "Registered"
+    },
+    "needsReview": "Needs review",
+    "reassessmentDue": "Reassessment due",
+    "noBloodGroup": "Not known",
+    "areaNotListed": "Not listed",
+    "newTitle": "Add donor",
+    "newIntro": "For walk-ins and paper forms. Confirm that the donor gave each consent before ticking it.",
+    "verifyNow": "Verify now (identity and contact confirmed in person)",
+    "editTitle": "Edit donor",
+    "phoneChangeWarning": "Changing the mobile number returns the donor to Pending verification.",
+    "staffConsentRegistry": "The donor consented to the registry (data storage and processing).",
+    "staffConsentContact": "The donor consented to be contacted about donation needs.",
+    "duplicatePhone": "A donor with this mobile number is already registered.",
+    "profile": {
+      "overview": "Overview",
+      "dateOfBirth": "Date of birth",
+      "age": "{age} years",
+      "city": "City",
+      "area": "Area",
+      "preferredContact": "Preferred contact",
+      "donatedBefore": "Donated before",
+      "lastDonationMonth": "Last donation (self-reported)",
+      "source": "Source",
+      "registered": "Registered",
+      "phone": "Mobile",
+      "reveal": "Show number",
+      "revealing": "Loading…",
+      "revealAudited": "Viewing the full number is recorded in the audit log.",
+      "bloodGroupSelf": "Self-reported blood group",
+      "bloodGroupVerified": "Verified blood group",
+      "bloodGroupVerificationBlocked": "Blood-group verification is not available yet: the blood bank has not approved the verification methods (Medical Rule Required M6).",
+      "statuses": "Status",
+      "nextEligibleOn": "Next donation from {date}",
+      "ineligibleUntil": "Until {date}",
+      "unavailableUntil": "Until {date}"
+    },
+    "verification": {
+      "title": "Verification",
+      "verify": "Verify",
+      "verifyHelp": "Identity and contact confirmed (usually by phone).",
+      "reject": "Reject",
+      "rejectConfirm": "Reject this registration? The donor will not appear in the donor pool unless an administrator reopens it.",
+      "reason": "Reason",
+      "note": "Note",
+      "reopen": "Reopen",
+      "revoke": "Revoke verification",
+      "adminReason": "Reason (required)",
+      "clearReview": "Mark as reviewed",
+      "clearReviewHelp": "The donor submitted the public form again. Check their details, then mark as reviewed.",
+      "history": "Verification history",
+      "historyEmpty": "No decisions yet."
+    },
+    "eligibility": {
+      "title": "Eligibility",
+      "record": "Record assessment",
+      "status": "Assessment",
+      "until": "Deferred until",
+      "note": "Note",
+      "noteHint": "Required for deferrals. Deferral categories will be added once approved (Medical Rule Required M7).",
+      "correct": "Correct to unassessed",
+      "correctHelp": "Administrator correction of a permanent deferral. A reason is required.",
+      "history": "Eligibility history",
+      "historyEmpty": "No assessments yet.",
+      "noTransitions": "No assessment can be recorded from the current status."
+    },
+    "availability": {
+      "title": "Availability",
+      "set": "Update availability",
+      "until": "Unavailable until (optional)"
+    },
+    "activity": {
+      "title": "Activity",
+      "deactivate": "Mark inactive",
+      "deactivateConfirm": "Mark this donor inactive? They will be excluded from matching.",
+      "reason": "Reason",
+      "reactivate": "Reactivate",
+      "reactivateBlocked": "Reactivation needs active registry and contact consent."
+    },
+    "consent": {
+      "title": "Consent",
+      "purpose": "Purpose",
+      "granted": "Granted",
+      "withdrawn": "Withdrawn",
+      "active": "Active",
+      "notice": "Notice {version}",
+      "withdraw": "Record withdrawal",
+      "withdrawConfirm": "Record that the donor withdrew this consent? The donor becomes inactive and is excluded from matching immediately.",
+      "grant": "Record consent",
+      "grantHelp": "Only when the donor has given this consent again, in person or by phone.",
+      "none": "No consent recorded.",
+      "missing": "Not given"
+    },
+    "notes": {
+      "title": "Notes",
+      "add": "Add note",
+      "body": "Note",
+      "empty": "No notes."
+    }
   }
 }
