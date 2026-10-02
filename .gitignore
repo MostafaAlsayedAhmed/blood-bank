@@ -1,0 +1,26 @@
+# dependencies
+node_modules/
+
+# next.js
+.next/
+out/
+next-env.d.ts
+*.tsbuildinfo
+
+# generated prisma client
+src/generated/
+
+# env files — never commit secrets
+.env
+.env.*
+!.env.example
+
+# tests
+coverage/
+playwright-report/
+test-results/
+tests/e2e/.auth/
+
+# misc
+.DS_Store
+*.log

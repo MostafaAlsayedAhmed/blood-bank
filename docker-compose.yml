@@ -1,0 +1,22 @@
+# Local development database only. Production hosting is an open legal decision (spec L1).
+services:
+  db:
+    image: postgres:18
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: bloodbank
+      POSTGRES_PASSWORD: bloodbank
+      POSTGRES_DB: bloodbank
+    ports:
+      - "5432:5432"
+    volumes:
+      # PostgreSQL 18 images store data under /var/lib/postgresql/<major>/docker.
+      - db-data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bloodbank -d bloodbank"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  db-data:
