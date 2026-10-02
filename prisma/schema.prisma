@@ -1,9 +1,11 @@
-// Queseir Hospital Blood Bank — Phase 1 (foundation) schema.
+// Queseir Hospital Blood Bank schema.
 //
-// Phase 1 contains only foundation tables: Hospital, Area, Better Auth tables,
-// StaffMembership and AuditLog. Donor, BloodRequest, DonorMatch, Communication,
-// Donation and ConsentRecord arrive in their own phases (see docs/mvp-technical-spec.md §15),
-// because several of their enums depend on open questions (O1, M2, M7).
+// Phase 1: Hospital, Area, Better Auth tables, StaffMembership, AuditLog.
+// Phase 2: Donor, ConsentRecord, DonorVerification, EligibilityRecord, DonorNote,
+//          RegistrationAttempt.
+// BloodRequest, DonorMatch, Communication and Donation arrive in their own phases
+// (docs/mvp-technical-spec.md §15), because several of their enums depend on open
+// questions (O1, M2).
 //
 // Conventions:
 // - Domain tables use UUID primary keys; Better Auth tables use its string ids.
@@ -33,6 +35,7 @@ model Hospital {
   areas       Area[]
   memberships StaffMembership[]
   auditLogs   AuditLog[]
+  donors      Donor[]
 
   @@map("hospital")
 }
@@ -48,8 +51,11 @@ model Area {
   updatedAt  DateTime @updatedAt @db.Timestamptz(3)
 
   hospital Hospital @relation(fields: [hospitalId], references: [id], onDelete: Restrict)
+  donors   Donor[]
 
   @@unique([hospitalId, city, name])
+  // Target of the donor composite FK, so a donor's area always belongs to its hospital.
+  @@unique([id, hospitalId])
   @@map("area")
 }
 
@@ -110,6 +116,230 @@ model AuditLog {
   @@map("audit_log")
 }
 
+// ─── Donors (Phase 2) ─────────────────────────────────────────────────────────
+
+// "Unknown" blood group is NULL, never a value (spec §4).
+enum BloodGroup {
+  A_POS
+  A_NEG
+  B_POS
+  B_NEG
+  AB_POS
+  AB_NEG
+  O_POS
+  O_NEG
+}
+
+enum VerificationStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
+enum EligibilityStatus {
+  UNASSESSED
+  ELIGIBLE
+  TEMPORARILY_INELIGIBLE
+  PERMANENTLY_INELIGIBLE
+}
+
+enum ActivityStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum InactiveReason {
+  DONOR_OPT_OUT
+  UNREACHABLE
+  CONSENT_WITHDRAWN
+  DUPLICATE
+}
+
+enum Availability {
+  AVAILABLE
+  UNAVAILABLE
+  UNKNOWN
+}
+
+enum DonatedBefore {
+  YES
+  NO
+  UNSURE
+}
+
+enum ContactMethod {
+  PHONE
+  WHATSAPP
+}
+
+enum DonorSource {
+  PUBLIC_FORM
+  STAFF_ENTRY
+}
+
+// Identity, contact and current statuses. The three status axes are independent (spec D2).
+model Donor {
+  id                            String             @id @default(uuid()) @db.Uuid
+  hospitalId                    String             @db.Uuid
+  fullName                      String
+  phoneE164                     String
+  dateOfBirth                   DateTime           @db.Date
+  city                          String
+  areaId                        String?            @db.Uuid
+  preferredContact              ContactMethod
+  selfReportedBloodGroup        BloodGroup?
+  // Set only by blood-group verification, which is disabled until M6 is approved.
+  verifiedBloodGroup            BloodGroup?
+  verificationStatus            VerificationStatus @default(PENDING)
+  eligibilityStatus             EligibilityStatus  @default(UNASSESSED)
+  ineligibleUntil               DateTime?          @db.Date
+  // Derived from an approved donation-interval rule (M4); stays NULL until then.
+  nextEligibleOn                DateTime?          @db.Date
+  activityStatus                ActivityStatus     @default(ACTIVE)
+  inactiveReason                InactiveReason?
+  availability                  Availability       @default(UNKNOWN)
+  unavailableUntil              DateTime?          @db.Date
+  donatedBefore                 DonatedBefore
+  selfReportedLastDonationMonth DateTime?          @db.Date
+  source                        DonorSource
+  needsReview                   Boolean            @default(false)
+  anonymisedAt                  DateTime?          @db.Timestamptz(3)
+  createdAt                     DateTime           @default(now()) @db.Timestamptz(3)
+  updatedAt                     DateTime           @updatedAt @db.Timestamptz(3)
+
+  hospital      Hospital            @relation(fields: [hospitalId], references: [id], onDelete: Restrict)
+  area          Area?               @relation(fields: [areaId, hospitalId], references: [id, hospitalId], onDelete: Restrict)
+  consents      ConsentRecord[]
+  verifications DonorVerification[]
+  eligibility   EligibilityRecord[]
+  notes         DonorNote[]
+
+  @@unique([hospitalId, phoneE164])
+  // Target of the child tables' composite FKs, so children share the donor's hospital.
+  @@unique([id, hospitalId])
+  @@index([hospitalId, verificationStatus])
+  @@index([hospitalId, eligibilityStatus, activityStatus])
+  @@index([hospitalId, verifiedBloodGroup])
+  @@index([hospitalId, areaId])
+  @@map("donor")
+}
+
+enum ConsentPurpose {
+  REGISTRY
+  CONTACT
+}
+
+enum ConsentChannel {
+  PUBLIC_FORM
+  STAFF_ENTRY
+}
+
+// Evidence of each consent (spec D13). Rows are never deleted; withdrawal sets
+// withdrawnAt exactly once (trigger). One active consent per (donor, purpose).
+model ConsentRecord {
+  id            String         @id @default(uuid()) @db.Uuid
+  hospitalId    String         @db.Uuid
+  donorId       String         @db.Uuid
+  purpose       ConsentPurpose
+  noticeVersion String
+  noticeSha256  String
+  channel       ConsentChannel
+  capturedById  String?
+  grantedAt     DateTime       @default(now()) @db.Timestamptz(3)
+  withdrawnAt   DateTime?      @db.Timestamptz(3)
+  withdrawnById String?
+
+  donor       Donor @relation(fields: [donorId, hospitalId], references: [id, hospitalId], onDelete: Restrict)
+  capturedBy  User? @relation("ConsentCapturedBy", fields: [capturedById], references: [id], onDelete: Restrict)
+  withdrawnBy User? @relation("ConsentWithdrawnBy", fields: [withdrawnById], references: [id], onDelete: Restrict)
+
+  @@index([donorId])
+  @@map("consent_record")
+}
+
+enum VerificationDecision {
+  VERIFIED
+  REJECTED
+  REVOKED
+  REOPENED
+}
+
+enum RejectionReason {
+  DUPLICATE
+  UNREACHABLE
+  INVALID
+  NOT_MEETING_CRITERIA
+  OTHER
+}
+
+// Append-only verification decisions (trigger). Blood-group confirmation columns
+// are added once the approved verification methods are known (M6).
+model DonorVerification {
+  id              String               @id @default(uuid()) @db.Uuid
+  hospitalId      String               @db.Uuid
+  donorId         String               @db.Uuid
+  decision        VerificationDecision
+  rejectionReason RejectionReason?
+  note            String               @default("")
+  decidedById     String
+  createdAt       DateTime             @default(now()) @db.Timestamptz(3)
+
+  donor     Donor @relation(fields: [donorId, hospitalId], references: [id, hospitalId], onDelete: Restrict)
+  decidedBy User  @relation(fields: [decidedById], references: [id], onDelete: Restrict)
+
+  @@index([donorId, createdAt])
+  @@map("donor_verification")
+}
+
+// Append-only eligibility assessments (trigger). reasonCategory is added once the
+// deferral categories are approved (M7).
+model EligibilityRecord {
+  id             String            @id @default(uuid()) @db.Uuid
+  hospitalId     String            @db.Uuid
+  donorId        String            @db.Uuid
+  status         EligibilityStatus
+  until          DateTime?         @db.Date
+  note           String            @default("")
+  rulesetVersion String?
+  recordedById   String
+  createdAt      DateTime          @default(now()) @db.Timestamptz(3)
+
+  donor      Donor @relation(fields: [donorId, hospitalId], references: [id, hospitalId], onDelete: Restrict)
+  recordedBy User  @relation(fields: [recordedById], references: [id], onDelete: Restrict)
+
+  @@index([donorId, createdAt])
+  @@map("eligibility_record")
+}
+
+// Staff notes. Visible to ADMIN/STAFF only (donor:note).
+model DonorNote {
+  id         String   @id @default(uuid()) @db.Uuid
+  hospitalId String   @db.Uuid
+  donorId    String   @db.Uuid
+  authorId   String
+  body       String
+  createdAt  DateTime @default(now()) @db.Timestamptz(3)
+
+  donor  Donor @relation(fields: [donorId, hospitalId], references: [id, hospitalId], onDelete: Restrict)
+  author User  @relation(fields: [authorId], references: [id], onDelete: Restrict)
+
+  @@index([donorId, createdAt])
+  @@map("donor_note")
+}
+
+// Throttle for the public form. Stores a keyed hash of the client IP, never the IP.
+// Rows older than the throttle window are deleted on later submissions.
+model RegistrationAttempt {
+  id         String   @id @default(uuid()) @db.Uuid
+  hospitalId String   @db.Uuid
+  ipHash     String
+  createdAt  DateTime @default(now()) @db.Timestamptz(3)
+
+  @@index([hospitalId, ipHash, createdAt])
+  @@index([createdAt])
+  @@map("registration_attempt")
+}
+
 // ─── Better Auth (core + admin plugin) ────────────────────────────────────────
 // Mirrors Better Auth's Prisma schema. After installing, run `npx auth generate`
 // and compare; if Better Auth 1.7 differs, adopt its output and add a migration.
@@ -131,6 +361,12 @@ model User {
   accounts    Account[]
   memberships StaffMembership[]
   auditLogs   AuditLog[]
+
+  consentsCaptured      ConsentRecord[]     @relation("ConsentCapturedBy")
+  consentsWithdrawn     ConsentRecord[]     @relation("ConsentWithdrawnBy")
+  verificationDecisions DonorVerification[]
+  eligibilityRecords    EligibilityRecord[]
+  donorNotes            DonorNote[]
 
   @@map("user")
 }
