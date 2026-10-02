@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: postgresql://bloodbank:bloodbank@localhost:5432/bloodbank
+      BETTER_AUTH_SECRET: ci-only-secret-not-used-anywhere-else-000
+      BETTER_AUTH_URL: http://localhost:3000
+      SEED_STAFF_PASSWORD: ci-only-password-123
+    services:
+      db:
+        image: postgres:18
+        env:
+          POSTGRES_USER: bloodbank
+          POSTGRES_PASSWORD: bloodbank
+          POSTGRES_DB: bloodbank
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U bloodbank" --health-interval 5s --health-timeout 3s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      # Switch to --frozen-lockfile once pnpm-lock.yaml is committed.
+      - run: pnpm install
+      - run: pnpm typecheck
+      - run: pnpm lint
+      - run: pnpm test
+      - run: pnpm db:deploy
+      - name: Check schema.prisma matches migrations
+        run: |
+          PGPASSWORD=bloodbank psql -h localhost -U bloodbank -d bloodbank -c 'CREATE DATABASE bloodbank_shadow'
+          pnpm db:check-drift
+        env:
+          SHADOW_DATABASE_URL: postgresql://bloodbank:bloodbank@localhost:5432/bloodbank_shadow
+      - run: pnpm test:integration
+      - run: pnpm db:seed
+      - run: pnpm build
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm test:e2e
