@@ -1,0 +1,186 @@
+// Queseir Hospital Blood Bank — Phase 1 (foundation) schema.
+//
+// Phase 1 contains only foundation tables: Hospital, Area, Better Auth tables,
+// StaffMembership and AuditLog. Donor, BloodRequest, DonorMatch, Communication,
+// Donation and ConsentRecord arrive in their own phases (see docs/mvp-technical-spec.md §15),
+// because several of their enums depend on open questions (O1, M2, M7).
+//
+// Conventions:
+// - Domain tables use UUID primary keys; Better Auth tables use its string ids.
+// - Table names are snake_case via @@map; columns keep Prisma's camelCase.
+// - CHECK constraints, partial indexes and triggers live in hand-edited migration SQL.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─── Tenancy ──────────────────────────────────────────────────────────────────
+
+model Hospital {
+  id        String   @id @default(uuid()) @db.Uuid
+  code      String   @unique
+  name      String
+  city      String
+  timezone  String   @default("Africa/Cairo")
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+
+  areas       Area[]
+  memberships StaffMembership[]
+  auditLogs   AuditLog[]
+
+  @@map("hospital")
+}
+
+// Hospital-managed locality list (spec D6). The real list for Quseir is open question O5.
+model Area {
+  id         String   @id @default(uuid()) @db.Uuid
+  hospitalId String   @db.Uuid
+  city       String
+  name       String
+  active     Boolean  @default(true)
+  createdAt  DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt  DateTime @updatedAt @db.Timestamptz(3)
+
+  hospital Hospital @relation(fields: [hospitalId], references: [id], onDelete: Restrict)
+
+  @@unique([hospitalId, city, name])
+  @@map("area")
+}
+
+// ─── Staff access ─────────────────────────────────────────────────────────────
+
+enum StaffRole {
+  ADMIN
+  STAFF
+  VIEWER
+}
+
+// The application role lives here, per hospital (spec D8). Better Auth's own
+// `user.role` is kept to "admin" | "user" and only gates its admin endpoints.
+model StaffMembership {
+  id         String    @id @default(uuid()) @db.Uuid
+  userId     String
+  hospitalId String    @db.Uuid
+  role       StaffRole
+  active     Boolean   @default(true)
+  createdAt  DateTime  @default(now()) @db.Timestamptz(3)
+  updatedAt  DateTime  @updatedAt @db.Timestamptz(3)
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Restrict)
+  hospital Hospital @relation(fields: [hospitalId], references: [id], onDelete: Restrict)
+
+  @@unique([userId, hospitalId])
+  @@index([hospitalId])
+  @@map("staff_membership")
+}
+
+// ─── Audit ────────────────────────────────────────────────────────────────────
+
+enum AuditActorType {
+  STAFF
+  PUBLIC
+  SYSTEM
+}
+
+// Append-only: UPDATE, DELETE and TRUNCATE are blocked by a trigger (see migration).
+// `metadata` holds ids, changed field names and status values only — never names,
+// phone numbers or free-text notes (spec §8 Audit strategy).
+model AuditLog {
+  id          String         @id @default(uuid()) @db.Uuid
+  hospitalId  String         @db.Uuid
+  actorType   AuditActorType
+  actorUserId String?
+  action      String
+  entityType  String
+  entityId    String
+  metadata    Json           @default("{}")
+  createdAt   DateTime       @default(now()) @db.Timestamptz(3)
+
+  hospital Hospital @relation(fields: [hospitalId], references: [id], onDelete: Restrict)
+  actor    User?    @relation(fields: [actorUserId], references: [id], onDelete: Restrict)
+
+  @@index([hospitalId, createdAt])
+  @@index([hospitalId, entityType, entityId, createdAt])
+  @@map("audit_log")
+}
+
+// ─── Better Auth (core + admin plugin) ────────────────────────────────────────
+// Mirrors Better Auth's Prisma schema. After installing, run `npx auth generate`
+// and compare; if Better Auth 1.7 differs, adopt its output and add a migration.
+
+model User {
+  id            String    @id
+  name          String
+  email         String    @unique
+  emailVerified Boolean   @default(false)
+  image         String?
+  createdAt     DateTime  @default(now()) @db.Timestamptz(3)
+  updatedAt     DateTime  @updatedAt @db.Timestamptz(3)
+  role          String?
+  banned        Boolean?  @default(false)
+  banReason     String?
+  banExpires    DateTime? @db.Timestamptz(3)
+
+  sessions    Session[]
+  accounts    Account[]
+  memberships StaffMembership[]
+  auditLogs   AuditLog[]
+
+  @@map("user")
+}
+
+model Session {
+  id             String   @id
+  expiresAt      DateTime @db.Timestamptz(3)
+  token          String   @unique
+  createdAt      DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt      DateTime @updatedAt @db.Timestamptz(3)
+  ipAddress      String?
+  userAgent      String?
+  userId         String
+  impersonatedBy String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime? @db.Timestamptz(3)
+  refreshTokenExpiresAt DateTime? @db.Timestamptz(3)
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now()) @db.Timestamptz(3)
+  updatedAt             DateTime  @updatedAt @db.Timestamptz(3)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("account")
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime @db.Timestamptz(3)
+  createdAt  DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt  DateTime @updatedAt @db.Timestamptz(3)
+
+  @@index([identifier])
+  @@map("verification")
+}
