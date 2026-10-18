@@ -22,25 +22,25 @@ export function LanguageSwitcher({ className }: { className?: string }) {
       router.refresh();
     });
   }
-
-  return (
-    <div role="group" aria-label={t("label")} className={cn("flex items-center gap-1 text-sm", className)}>
-      {LOCALES.map((locale) => (
-        <button
-          key={locale}
-          type="button"
-          lang={locale}
-          onClick={() => choose(locale)}
-          disabled={pending || locale === current}
-          aria-pressed={locale === current}
-          className={cn(
-            "rounded-md px-2 py-1 hover:bg-muted disabled:cursor-default",
-            locale === current ? "bg-muted font-semibold" : "text-muted-foreground",
-          )}
-        >
-          {NATIVE_NAMES[locale]}
-        </button>
-      ))}
-    </div>
-  );
+  return <></>
+  // return (
+  //   <div role="group" aria-label={t("label")} className={cn("flex items-center gap-1 text-sm", className)}>
+  //     {LOCALES.map((locale) => (
+  //       <button
+  //         key={locale}
+  //         type="button"
+  //         lang={locale}
+  //         onClick={() => choose(locale)}
+  //         disabled={pending || locale === current}
+  //         aria-pressed={locale === current}
+  //         className={cn(
+  //           "rounded-md px-2 py-1 hover:bg-muted disabled:cursor-default",
+  //           locale === current ? "bg-muted font-semibold" : "text-muted-foreground",
+  //         )}
+  //       >
+  //         {NATIVE_NAMES[locale]}
+  //       </button>
+  //     ))}
+  //   </div>
+  // );
 }
